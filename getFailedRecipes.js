@@ -12,14 +12,14 @@ const fetchNutrition = async (ids, urls, content_ids) => {
     )
   );
   const data = await Promise.all(responses.map((res) => res.json()));
-  const failedIds = [];
+  const hasRecipe = [];
   data.forEach((nutrition, i) => {
-    console.log(`recipe ${i}`);
-    ids;
-    if (nutrition?.data?.length === 0)
-      failedIds.push({ url: urls[i], id: content_ids[i] });
+    if (ids[i] == urls[i]) hasRecipe.push([urls[i]]);
+    else if (nutrition?.data?.length !== 0)
+      hasRecipe.push(["https://" + urls[i].substring(2), 1]);
+    else hasRecipe.push("https://" + [urls[i].substring(2), 0]);
   });
-  return failedIds;
+  return hasRecipe;
 };
 var authClient = "Doorman-SHA256 Credential=" + process.env.clientID;
 var authTimestamp = Math.floor(Date.now() / 1000);
@@ -48,8 +48,13 @@ async function getRecipeIds(contentIds) {
   const data = await Promise.all(responses.map((res) => res.json()));
   data.forEach((content, i) => {
     console.log(`Content ${i}`);
-    ids.push(content["data"]["recipe"]),
-      urls.push(content["data"]["metadata"]["links"]["frontend"]["prod"]);
+    if (!content["data"]) {
+      ids.push(contentIds[i]);
+      urls.push(contentIds[i]);
+    } else {
+      ids.push(content["data"]["recipe"]),
+        urls.push(content["data"]["metadata"]["links"]["frontend"]["prod"]);
+    }
   });
   return [ids, urls];
 }
@@ -79,6 +84,6 @@ async function main() {
   const [ids, urls] = await getRecipeIds(content_ids);
   const failedIds = [];
   const nut = await fetchNutrition(ids, urls, content_ids);
-  console.log(nut);
+  fs.writeFileSync("alreadyHaveNutritionRecipes.txt", [...nut].join("\n"));
 }
 main();

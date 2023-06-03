@@ -166,9 +166,7 @@ async function fetchAllLinks(urls) {
       "https://rover.kubefeature.hearstapps.net/v2/content?" + params,
       {
         headers: headers,
-      }
-    );
-    if (res.status !== 200) console.log(`URL not valid ${url}`);
+      });
     return { ...(await res.json()), fetchedUrl: url };
   });
 
@@ -181,6 +179,7 @@ async function fetchAllLinks(urls) {
     return content["data"][0]["id"];
   });
   fs.writeFile("contentIds.txt", ids.join("\n"), () => {});
+  return ids;
 }
 
 const urls = [];
@@ -195,4 +194,7 @@ fs.createReadStream("links.csv")
   })
   .on("error", (err) => console.log(err));
 
-
+module.exports = {
+  fetchAllLinks,
+  extractSlug,
+};
